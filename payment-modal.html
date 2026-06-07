@@ -1,0 +1,166 @@
+<!-- ============================================
+SPANVEIL PAYMENT MODAL
+Copy everything below and paste it just before
+your closing </body> tag in index.html
+============================================ -->
+
+<!-- Paystack SDK -->
+<script src="https://js.paystack.co/v1/inline.js"></script>
+
+<!-- Payment Modal HTML -->
+<div id="payModal" style="display:none;position:fixed;inset:0;background:rgba(6,7,10,.95);backdrop-filter:blur(8px);z-index:4000;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#0d0f14;border:1px solid #272d3f;width:480px;max-width:95vw;">
+
+    <!-- Header -->
+    <div style="padding:20px 24px;border-bottom:1px solid #1e2230;display:flex;justify-content:space-between;align-items:center;">
+      <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:#eef1f8;">Complete Your Order</div>
+      <button onclick="closePayModal()" style="background:none;border:1px solid #272d3f;color:#4a5270;padding:5px 12px;cursor:pointer;font-family:'DM Mono',monospace;font-size:11px;">✕</button>
+    </div>
+
+    <!-- Plan Bar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 24px;background:rgba(0,255,136,.07);border-bottom:1px solid rgba(0,255,136,.15);">
+      <div>
+        <div id="payPlanName" style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#eef1f8;">Growth Plan</div>
+        <div id="payPlanPeriod" style="font-size:10px;color:#4a5270;">Billed monthly</div>
+      </div>
+      <div id="payPlanPrice" style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#00ff88;">$299/mo</div>
+    </div>
+
+    <!-- Step 1: Email -->
+    <div id="payStep1" style="padding:24px;">
+      <div style="font-size:10px;text-transform:uppercase;letter-spacing:.15em;color:#4a5270;margin-bottom:6px;">Your Email Address</div>
+      <input type="email" id="payEmail" placeholder="you@company.com"
+        style="width:100%;background:#06070a;border:1px solid #272d3f;color:#c0c8dc;font-family:'DM Mono',monospace;font-size:13px;padding:12px 14px;outline:none;margin-bottom:10px;"
+        onfocus="this.style.borderColor='#00ff88'" onblur="this.style.borderColor='#272d3f'">
+      <div style="font-size:10px;color:#4a5270;margin-bottom:20px;">Receipt and account details will be sent to this email.</div>
+
+      <!-- Payment methods -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;">
+        <div style="border:1px solid #1e2230;padding:12px;text-align:center;font-size:11px;color:#4a5270;">💳 Visa / Mastercard</div>
+        <div style="border:1px solid #1e2230;padding:12px;text-align:center;font-size:11px;color:#4a5270;">📱 M-Pesa (Kenya)</div>
+        <div style="border:1px solid #1e2230;padding:12px;text-align:center;font-size:11px;color:#4a5270;">🏦 Bank Transfer</div>
+        <div style="border:1px solid #1e2230;padding:12px;text-align:center;font-size:11px;color:#4a5270;">💵 USSD / Mobile</div>
+      </div>
+
+      <button onclick="payWithPaystack()"
+        style="width:100%;padding:14px;background:#00ff88;color:#06070a;border:none;font-family:'DM Mono',monospace;font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;">
+        PAY SECURELY WITH PAYSTACK →
+      </button>
+
+      <div style="font-size:10px;color:#4a5270;text-align:center;margin-top:12px;line-height:1.7;">
+        🔒 Secured by Paystack · PCI DSS Compliant · SSL Encrypted<br>
+        Questions? <a href="mailto:spanveilAI@gmail.com" style="color:#00ff88;">spanveilAI@gmail.com</a> · <a href="tel:+254114869861" style="color:#00ff88;">+254 114 869 861</a>
+      </div>
+    </div>
+
+    <!-- Step 2: Processing -->
+    <div id="payStep2" style="display:none;padding:48px 24px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:16px;">⏳</div>
+      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#eef1f8;margin-bottom:8px;">Opening Paystack checkout...</div>
+      <div style="font-size:12px;color:#4a5270;">Complete your payment in the Paystack window.</div>
+    </div>
+
+    <!-- Step 3: Success -->
+    <div id="payStep3" style="display:none;padding:48px 24px;text-align:center;">
+      <div style="font-size:48px;margin-bottom:16px;">🎉</div>
+      <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#00ff88;margin-bottom:8px;">Payment Successful!</div>
+      <div style="font-size:12px;color:#c0c8dc;line-height:1.8;margin-bottom:8px;">
+        Receipt sent to <strong id="successEmail" style="color:#eef1f8;"></strong>
+      </div>
+      <div style="font-size:11px;color:#4a5270;margin-bottom:24px;">
+        Reference: <span id="successRef" style="color:#00ff88;"></span>
+      </div>
+      <div style="font-size:12px;color:#4a5270;padding:14px;border:1px solid #1e2230;margin-bottom:20px;line-height:1.7;">
+        Your account will be activated within 1 hour.<br>
+        For instant setup: WhatsApp <a href="tel:+254114869861" style="color:#00ff88;">+254 114 869 861</a>
+      </div>
+      <button onclick="closePayModal()" style="background:#00ff88;color:#06070a;border:none;padding:12px 28px;font-family:'DM Mono',monospace;font-size:12px;font-weight:700;cursor:pointer;">
+        CLOSE →
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- Payment JS -->
+<script>
+const PAYSTACK_KEY = 'pk_test_2645086cb0aa6cf10db4ef048a69008cc2626b31';
+let currentPlan = { name:'', amount:0, period:'', priceDisplay:'' };
+let billingAnnual = false;
+
+function openPayModal(plan, priceDisplay, period, amount) {
+  currentPlan = { name:plan, amount:amount*100, period, priceDisplay };
+  document.getElementById('payPlanName').textContent = plan + ' Plan';
+  document.getElementById('payPlanPrice').textContent = priceDisplay;
+  document.getElementById('payPlanPeriod').textContent = period;
+  document.getElementById('payModal').style.display = 'flex';
+  document.getElementById('payStep1').style.display = 'block';
+  document.getElementById('payStep2').style.display = 'none';
+  document.getElementById('payStep3').style.display = 'none';
+  document.getElementById('payEmail').value = '';
+  document.getElementById('payEmail').style.borderColor = '#272d3f';
+}
+
+function closePayModal() {
+  document.getElementById('payModal').style.display = 'none';
+}
+
+function payWithPaystack() {
+  const email = document.getElementById('payEmail').value.trim();
+  if (!email || !email.includes('@')) {
+    document.getElementById('payEmail').style.borderColor = '#ff4d6d';
+    document.getElementById('payEmail').focus();
+    return;
+  }
+  document.getElementById('payStep1').style.display = 'none';
+  document.getElementById('payStep2').style.display = 'block';
+  const handler = PaystackPop.setup({
+    key: PAYSTACK_KEY,
+    email: email,
+    amount: currentPlan.amount,
+    currency: 'USD',
+    ref: 'SPV_' + Date.now(),
+    metadata: { custom_fields: [
+      { display_name:'Plan', variable_name:'plan', value:currentPlan.name },
+      { display_name:'Period', variable_name:'period', value:currentPlan.period }
+    ]},
+    callback: function(response) {
+      document.getElementById('payStep2').style.display = 'none';
+      document.getElementById('payStep3').style.display = 'block';
+      document.getElementById('successEmail').textContent = email;
+      document.getElementById('successRef').textContent = response.reference;
+      const s = encodeURIComponent('NEW PAYMENT: ' + currentPlan.name + ' — ' + email);
+      const b = encodeURIComponent('Plan: '+currentPlan.name+'\nAmount: '+currentPlan.priceDisplay+'\nEmail: '+email+'\nRef: '+response.reference);
+      const a = document.createElement('a');
+      a.href = 'mailto:spanveilAI@gmail.com?subject='+s+'&body='+b;
+      a.click();
+    },
+    onClose: function() {
+      document.getElementById('payStep1').style.display = 'block';
+      document.getElementById('payStep2').style.display = 'none';
+    }
+  });
+  handler.openIframe();
+}
+
+function toggleBilling() {
+  billingAnnual = !billingAnnual;
+  const tog = document.getElementById('billToggle');
+  if(tog) tog.classList.toggle('on');
+  const mo = document.getElementById('bill-monthly');
+  const an = document.getElementById('bill-annual');
+  if(mo) mo.classList.toggle('on');
+  if(an) an.classList.toggle('on');
+  if(billingAnnual) {
+    document.getElementById('growthPrice').textContent='239';
+    document.getElementById('growthPeriod').textContent='per month · billed annually';
+    document.getElementById('entPrice').textContent='799';
+    document.getElementById('entPeriod').textContent='per month · billed annually';
+  } else {
+    document.getElementById('growthPrice').textContent='299';
+    document.getElementById('growthPeriod').textContent='per month · billed monthly';
+    document.getElementById('entPrice').textContent='999';
+    document.getElementById('entPeriod').textContent='per month · billed monthly';
+  }
+}
+</script>

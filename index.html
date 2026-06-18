@@ -1025,7 +1025,10 @@ let currentPlan={name:'',amount:0,period:'',priceDisplay:''};
 let billingAnnual=false;
 
 function openPayModal(plan,priceDisplay,period,amount){
-  currentPlan={name:plan,amount:amount*100,period:period,priceDisplay:priceDisplay};
+  // Convert USD to KES (1 USD = ~130 KES), Paystack needs amount in kobo/cents (x100)
+  const kesRate=130;
+  const kesAmount=amount*kesRate*100;
+  currentPlan={name:plan,amount:kesAmount,period:period,priceDisplay:priceDisplay};
   document.getElementById('payPlanName').textContent=plan+' Plan';
   document.getElementById('payPlanPrice').textContent=priceDisplay;
   document.getElementById('payPlanPeriod').textContent=period;
@@ -1042,7 +1045,7 @@ function payWithPaystack(){
     return;
   }
   const handler=PaystackPop.setup({
-    key:PAYSTACK_KEY,email:email,amount:currentPlan.amount,currency:'USD',ref:'SPV_'+Date.now(),
+    key:PAYSTACK_KEY,email:email,amount:currentPlan.amount,currency:'KES',ref:'SPV_'+Date.now(),
     metadata:{custom_fields:[{display_name:'Plan',variable_name:'plan',value:currentPlan.name},{display_name:'Period',variable_name:'period',value:currentPlan.period}]},
     callback:function(response){
       closePayModal();
